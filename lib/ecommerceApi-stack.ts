@@ -7,6 +7,7 @@ import { Construct } from 'constructs';
 interface EcommerceApiStackProps extends cdk.StackProps {
     productsFetchHandler: lambdaNodeJS.NodejsFunction
     productsAdminHandler: lambdaNodeJS.NodejsFunction
+    ordersHandler: lambdaNodeJS.NodejsFunction
 }
 
 export class EcommerceApiStack extends cdk.Stack {
@@ -33,27 +34,106 @@ export class EcommerceApiStack extends cdk.Stack {
             }
         })
 
-        const productsFetchIntegration = new apigateway.LambdaIntegration(props.productsFetchHandler)
-        const productsAdminIntegration = new apigateway.LambdaIntegration(props.productsAdminHandler)
 
-        const productsResource = api.root.addResource("products")
-        const productIdResource = productsResource.addResource("{id}")
+        const ordersIntegration = new apigateway.LambdaIntegration(props.ordersHandler)
+
+        this.createProductsService(props, api);
+        this.createOrdersService(props, api);
+
+    }
+    private createOrdersService(props: EcommerceApiStackProps, api: apigateway.RestApi) {
+        const ordersIntegration = new apigateway.LambdaIntegration(props.ordersHandler);
+
+        //resource - /orders
+        const ordersResource = api.root.addResource("orders")
+
+        //GET /orders
+        //GET /orders?email=milton@testto.com.br
+        //GET /orders?email=milton@testto.com.br&orderId=123
+        ordersResource.addMethod("GET", ordersIntegration);
+
+        //DELETE /orders?email=milton@testto.com.br&orderId=123
+        const orderDeletionValidator = new apigateway.RequestValidator(this, "OrderDeletionValidator", {
+            restApi: api,
+            requestValidatorName: "OrderDeletionValidator",
+            validateRequestParameters: true
+        })
+
+        ordersResource.addMethod("DELETE", ordersIntegration, {
+            requestParameters: {
+                'method.request.querystring.email': true,
+                'method.request.querystring.orderId': true,
+            },
+            requestValidator: orderDeletionValidator
+        });
+
+        //POST /orders
+        const orderRequestValidator = new apigateway.RequestValidator(this, "OrderRequestValidator", {
+            restApi: api,
+            requestValidatorName: "OrderRequestValidator",
+            validateRequestBody: true
+        })
+
+        const orderModel = new apigateway.Model(this, "OrderModel", {
+            modelName: "OrderModel",
+            restApi: api,
+            schema: {
+                type: apigateway.JsonSchemaType.OBJECT,
+                properties: {
+                    email: {
+                        type: apigateway.JsonSchemaType.STRING
+                    },
+                    productIds: {
+                        type: apigateway.JsonSchemaType.ARRAY,
+                        minItems: 1,
+                        items: {
+                            type: apigateway.JsonSchemaType.STRING
+                        }
+                    },
+                    payment: {
+                        type: apigateway.JsonSchemaType.STRING,
+                        enum: ["CASH", "DEBIT_CARD", "CREDIT_CARD"]
+                    }
+                },
+                required: [
+                    "email",
+                    "productIds",
+                    "payment"
+                ]
+            }
+        })
+
+        ordersResource.addMethod("POST", ordersIntegration, {
+            requestModels: {
+                "application/json": orderModel
+            },
+            requestValidator: orderRequestValidator
+        });
+    }
+
+    private createProductsService(props: EcommerceApiStackProps, api: apigateway.RestApi) {
+
+        const productsFetchIntegration = new apigateway.LambdaIntegration(props.productsFetchHandler);
+        const productsAdminIntegration = new apigateway.LambdaIntegration(props.productsAdminHandler);
+
+
+        const productsResource = api.root.addResource("products");
+        const productIdResource = productsResource.addResource("{id}");
 
         // ROUTES
         // GET /products        
-        productsResource.addMethod("GET", productsFetchIntegration)
+        productsResource.addMethod("GET", productsFetchIntegration);
 
         // GET /products/{id}
-        productIdResource.addMethod("GET", productsFetchIntegration)
+        productIdResource.addMethod("GET", productsFetchIntegration);
 
         // POST /products        
-        productsResource.addMethod("POST", productsAdminIntegration)
+        productsResource.addMethod("POST", productsAdminIntegration);
 
         // PUT /products/{id}
-        productIdResource.addMethod("PUT", productsAdminIntegration)
+        productIdResource.addMethod("PUT", productsAdminIntegration);
 
         // DELETE /products/{id}
-        productIdResource.addMethod("DELETE", productsAdminIntegration)
-
+        productIdResource.addMethod("DELETE", productsAdminIntegration);
     }
 }
