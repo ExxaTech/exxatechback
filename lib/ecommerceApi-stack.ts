@@ -127,8 +127,49 @@ export class EcommerceApiStack extends cdk.Stack {
         // GET /products/{id}
         productIdResource.addMethod("GET", productsFetchIntegration);
 
-        // POST /products        
-        productsResource.addMethod("POST", productsAdminIntegration);
+        // POST /products    
+        const productRequestValidator = new apigateway.RequestValidator(this, "ProductRequestValidator", {
+            restApi: api,
+            requestValidatorName: "ProductRequestValidator",
+            validateRequestBody: true
+        })
+
+        const productModel = new apigateway.Model(this, "ProductModel", {
+            modelName: "ProductModel",
+            restApi: api,
+            schema: {
+                type: apigateway.JsonSchemaType.OBJECT,
+                properties: {
+                    productName: {
+                        type: apigateway.JsonSchemaType.STRING
+                    },
+                    code: {
+                        type: apigateway.JsonSchemaType.STRING
+                    },
+                    price: {
+                        type: apigateway.JsonSchemaType.NUMBER
+                    },
+                    model: {
+                        type: apigateway.JsonSchemaType.STRING
+                    },
+                    productUrl: {
+                        type: apigateway.JsonSchemaType.STRING
+                    },
+                },
+                required: [
+                    "productName",
+                    "code",
+                    "price"
+                ]
+            }
+        })
+
+        productsResource.addMethod("POST", productsAdminIntegration, {
+            requestModels: {
+                "application/json": productModel
+            },
+            requestValidator: productRequestValidator
+        });
 
         // PUT /products/{id}
         productIdResource.addMethod("PUT", productsAdminIntegration);

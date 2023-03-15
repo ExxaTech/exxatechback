@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib'
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import * as lambda from 'aws-cdk-lib/aws-lambda'
 import * as lambdaNodeJS from 'aws-cdk-lib/aws-lambda-nodejs'
+import * as sns from 'aws-cdk-lib/aws-sns'
 import * as ssm from 'aws-cdk-lib/aws-ssm'
 import { Construct } from 'constructs'
 
@@ -39,9 +40,18 @@ export class OrdersAppStack extends cdk.Stack {
     const ordersApiLayerArn = ssm.StringParameter.valueForStringParameter(this, "OrdersApiLayerVersionArn")
     const ordersApiLayer = lambda.LayerVersion.fromLayerVersionArn(this, "OrdersApiLayerVersionArn", ordersApiLayerArn)
 
+    //Orders Events Layer
+    const orderEventsLayerArn = ssm.StringParameter.valueForStringParameter(this, "OrderEventsLayerVersionArn")
+    const orderEventsLayer = lambda.LayerVersion.fromLayerVersionArn(this, "OrderEventsLayerVersionArn", orderEventsLayerArn)
+
     //Product Layer
     const productsLayerArn = ssm.StringParameter.valueForStringParameter(this, "ProductsLayerVersionArn")
     const productsLayer = lambda.LayerVersion.fromLayerVersionArn(this, "ProductsLayerVersionArn", productsLayerArn)
+
+    const ordersTopic = new sns.Topic(this, "OrdersEventsTopic", {
+      displayName: "Order events topic",
+      topicName: "order-events"
+    })
 
     this.ordersHandler = new lambdaNodeJS.NodejsFunction(this, "OrdersFunction", {
       functionName: "OrdersFunction",
@@ -55,13 +65,15 @@ export class OrdersAppStack extends cdk.Stack {
       },
       environment: {
         ORDERS_DDB: ordersDdb.tableName,
-        PRODUCTS_DDB: props.productsDdb.tableName
+        PRODUCTS_DDB: props.productsDdb.tableName,
+        ORDER_EVENTS_TOPIC_ARN: ordersTopic.topicArn
       },
-      layers: [productsLayer, ordersLayer, ordersApiLayer],
+      layers: [productsLayer, ordersLayer, ordersApiLayer, ordersApiLayer],
       tracing: lambda.Tracing.ACTIVE,
       insightsVersion: lambda.LambdaInsightsVersion.VERSION_1_0_119_0
     })
 
+    ordersTopic.grantPublish(this.ordersHandler)
     ordersDdb.grantReadWriteData(this.ordersHandler)
     props.productsDdb.grantReadData(this.ordersHandler)
 
