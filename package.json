@@ -25,9 +25,11 @@
     "typescript": "~3.9.7"
   },
   "dependencies": {
+    "@microsoft/eslint-formatter-sarif": "^2.1.7",
     "aws-cdk-lib": "2.53.0",
     "aws-xray-sdk": "^3.4.1",
     "constructs": "^10.0.0",
+    "eslint": "^8.10.0",
     "source-map-support": "^0.5.21"
   }
 }
