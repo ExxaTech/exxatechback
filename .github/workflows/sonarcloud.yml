@@ -54,8 +54,8 @@ jobs:
         with:
           # Additional arguments for the sonarcloud scanner
           args:
-            -Dsonar.projectKey=exxatech
-            -Dsonar.organization=ExxaTech_exxatechback
+            -Dsonar.projectKey=ExxaTech_exxatechback
+            -Dsonar.organization=exxatech
             # Comma-separated paths to directories containing main source files.
             #-Dsonar.sources= # optional, default is project base directory
             # When you need the analysis to take place in a directory other than the one from which it was launched
