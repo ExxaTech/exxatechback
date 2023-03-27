@@ -12,14 +12,10 @@ AWSXRay.captureAWS(require("aws-sdk"))
 const productsDdb = process.env.PRODUCTS_DDB!
 const orderstDdb = process.env.ORDERS_DDB!
 const orderEventsTopicArn = process.env.ORDER_EVENTS_TOPIC_ARN!
-
 const ddbClient = new DynamoDB.DocumentClient()
-
 const snsClient = new SNS()
-
 const orderRepository = new OrderRepository(ddbClient, orderstDdb)
 const productRepository = new ProductRepository(ddbClient, productsDdb)
-
 
 export async function handler(event: APIGatewayProxyEvent, context: Context):
   Promise<APIGatewayProxyResult> {
@@ -134,7 +130,6 @@ export async function handler(event: APIGatewayProxyEvent, context: Context):
   }
 }
 
-
 function convertToOrderResponse(order: Order): OrderResponse {
 
   const orderProducts: OrderProductResponse[] = []
@@ -162,7 +157,6 @@ function convertToOrderResponse(order: Order): OrderResponse {
 
   return orderResponse
 }
-
 
 function buildOrder(orderRequest: OrderRequest, products: Product[]): Order {
 

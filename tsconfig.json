@@ -41,6 +41,9 @@
       ],
       "/opt/nodejs/orderEventsRepositoryLayer": [
         "lambda/orders/layers/orderEventsRepositoryLayer/nodejs/orderEventRepository"
+      ],
+      "/opt/nodejs/whatsLayer": [
+        "lambda/whats/layers/whatsLayer/nodejs/whatRepository"
       ]
     }
   },

@@ -8,6 +8,7 @@ interface EcommerceApiStackProps extends cdk.StackProps {
     productsFetchHandler: lambdaNodeJS.NodejsFunction
     productsAdminHandler: lambdaNodeJS.NodejsFunction
     ordersHandler: lambdaNodeJS.NodejsFunction
+    whatsHandler: lambdaNodeJS.NodejsFunction
 }
 
 export class EcommerceApiStack extends cdk.Stack {
@@ -39,8 +40,10 @@ export class EcommerceApiStack extends cdk.Stack {
 
         this.createProductsService(props, api);
         this.createOrdersService(props, api);
+        this.createWhatsService(props, api);
 
     }
+
     private createOrdersService(props: EcommerceApiStackProps, api: apigateway.RestApi) {
         const ordersIntegration = new apigateway.LambdaIntegration(props.ordersHandler);
 
@@ -109,6 +112,18 @@ export class EcommerceApiStack extends cdk.Stack {
             },
             requestValidator: orderRequestValidator
         });
+    }
+
+    private createWhatsService(props: EcommerceApiStackProps, api: apigateway.RestApi) {
+        const whatsIntegration = new apigateway.LambdaIntegration(props.whatsHandler);
+
+        //resource - /whats
+        const whatsResource = api.root.addResource("whats")
+        const whatsWebHookResource = whatsResource.addResource("webhook")
+
+        //methods webhook
+        whatsWebHookResource.addMethod("GET", whatsIntegration);
+        whatsWebHookResource.addMethod("POST", whatsIntegration);
     }
 
     private createProductsService(props: EcommerceApiStackProps, api: apigateway.RestApi) {
