@@ -2,7 +2,8 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda
 import { DynamoDB } from "aws-sdk";
 import * as AWSXRay from "aws-xray-sdk";
 import { v4 as uuid } from "uuid";
-import { What, WhatRepository, WhatRequest } from "/opt/nodejs/whatsLayer";
+import { WhatRepository, WhatRequestMessage, WhatsWeboHookTypes } from "/opt/nodejs/whatsLayer";
+
 
 AWSXRay.captureAWS(require("aws-sdk"))
 const whatsDdb = process.env.WHATS_DDB!
@@ -18,26 +19,27 @@ export async function handler(event: APIGatewayProxyEvent, context: Context): Pr
   const method = event.httpMethod
 
   if (method === 'POST') {
-    console.log(`POST /whats => ${JSON.stringify(event.body, null, 2)}`);
+    console.log(`POST /whats => ${event.body}`);
 
-    //TODO: Testar o post e depois verificar para salvar no DynamoDB
+    const whatRequestMessage = JSON.parse(event.body!) as WhatRequestMessage;
 
-    // const whatRequest = JSON.parse(event.body!) as WhatRequest;
-    // const whats = buildWhats(whatRequest)
-    // const whatsCreated = await whatRepository.create(whats)
+    if (whatRequestMessage?.entry[0]?.changes[0]?.field === 'messages' &&
+      whatRequestMessage?.entry[0]?.changes[0]?.value?.messages) {
 
-    const whatRequest = JSON.parse(event.body!);
 
-    if (whatRequest?.entry[0]?.changes[0]?.value?.message[0]) {
-      const phone_number_id = whatRequest.entry[0].changes[0].value.metadata.phone_number_id;
-      const from = whatRequest.entry[0].changes[0].value.messages[0].from;
-      const msg_body = whatRequest.entry[0].changes[0].value.messages[0].text.body;
+      const phone_number_id = whatRequestMessage.entry[0].changes[0].value.metadata.phone_number_id;
+      const from = whatRequestMessage.entry[0].changes[0].value.messages[0].from;
+      const msg_body = whatRequestMessage.entry[0].changes[0].value.messages[0].text.body;
+
+      const whats = buildWhatsMessage(whatRequestMessage, from, WhatsWeboHookTypes.TEXT)
 
       console.log(`phone_number_id: ${phone_number_id}, from: ${from}, msg_body: ${msg_body}`);
 
+      const whatsCreated = await whatRepository.create(whats)
+
       return {
         statusCode: 201,
-        body: JSON.stringify(whatRequest)
+        body: JSON.stringify(whatsCreated)
       }
     }
   }
@@ -71,16 +73,20 @@ export async function handler(event: APIGatewayProxyEvent, context: Context): Pr
       })
     }
   }
+}
 
-  function buildWhats(whatRequest: WhatRequest) {
+function buildWhatsMessage(whatRequestMessage: WhatRequestMessage,
+  from: string,
+  webHookType: WhatsWeboHookTypes): WhatRequestMessage {
 
-    const whats: What = {
-      pk: whatRequest.email,
-      sk: uuid(),
-      createdAt: Date.now(),
-      callBackJson: whatRequest.body,
-    }
 
-    return whats;
-  }
+  const timestamp = Date.now()
+
+  whatRequestMessage.id = uuid();
+  whatRequestMessage.createdAt = timestamp;
+
+  whatRequestMessage.pk = `#message_${from}`;
+  whatRequestMessage.sk = `#${webHookType}#${timestamp}`;
+
+  return whatRequestMessage;
 }
