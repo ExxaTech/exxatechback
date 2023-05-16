@@ -44,6 +44,9 @@
       ],
       "/opt/nodejs/whatsLayer": [
         "lambda/whats/layers/whatsLayer/nodejs/whatRepository"
+      ],
+      "/opt/nodejs/authLayer": [
+        "lambda/auth/layers/AuthLayer/nodejs/whatRepository"
       ]
     }
   },
