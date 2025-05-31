@@ -12,6 +12,7 @@ interface EcommerceApiStackProps extends cdk.StackProps {
     productsAdminHandler: lambdaNodeJS.NodejsFunction
     ordersHandler: lambdaNodeJS.NodejsFunction
     whatsHandler: lambdaNodeJS.NodejsFunction
+    authHandler: lambda.IFunction; 
 }
 
 export class EcommerceApiStack extends cdk.Stack {

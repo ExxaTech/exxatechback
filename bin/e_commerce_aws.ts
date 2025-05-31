@@ -7,6 +7,8 @@ import { ProductsAppStack } from '../lib/productsApp-stack';
 import { ProductsApplayersStack } from '../lib/productsAppLayers-stack';
 import { WhatsAppStack } from '../lib/whatsApp-stack';
 import { WhatsApplayersStack } from '../lib/whatsAppLayers-stack';
+import { AuthStack } from '../lib/auth-stack';  
+import { SsmParamsStack } from '../lib/ssm-params-stack';
 
 const app = new cdk.App();
 
@@ -64,16 +66,27 @@ const whatsAppStack = new WhatsAppStack(app, "WhatsApp", {
   env: env,
 })
 
+const ssmParamsStack = new SsmParamsStack(app, 'SsmParamsStack', {
+  tags,
+  env,
+});
+
 whatsAppStack.addDependency(whatsApplayersStack)
+
+const authStack = new AuthStack(app, "AuthStack", { tags, env });
+authStack.addDependency(ssmParamsStack);
+
 
 const eCommerceApiStack = new EcommerceApiStack(app, "EcommerceApi", {
   productsFetchHandler: productsAppStack.productsFetchHandler,
   productsAdminHandler: productsAppStack.productsAdminHandler,
   ordersHandler: ordersAppStack.ordersHandler,
   whatsHandler: whatsAppStack.whatsHandler,
+  authHandler: authStack.authLambda, 
   tags: tags,
   env: env
 })
 
 eCommerceApiStack.addDependency(productsAppStack)
 eCommerceApiStack.addDependency(ordersAppStack)
+eCommerceApiStack.addDependency(authStack);
