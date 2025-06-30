@@ -40,7 +40,10 @@ export class WhatsAppStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(2),
       bundling: {
         minify: true,
-        sourceMap: false
+        sourceMap: false,
+        esbuildArgs: {
+            '--packages': 'bundle',
+        },
       },
       environment: {
         WHATS_DDB: whatsDdb.tableName,

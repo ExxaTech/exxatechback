@@ -78,8 +78,8 @@ authStack.addDependency(ssmParamsStack);
 
 
 const eCommerceApiStack = new EcommerceApiStack(app, "EcommerceApi", {
-  productsFetchHandler: productsAppStack.productsFetchHandler,
-  productsAdminHandler: productsAppStack.productsAdminHandler,
+  productsFetchHandlerArn: productsAppStack.productsFetchHandler.functionArn,
+  productsAdminHandlerArn: productsAppStack.productsAdminHandler.functionArn,
   ordersHandler: ordersAppStack.ordersHandler,
   whatsHandler: whatsAppStack.whatsHandler,
   authHandler: authStack.authLambda, 

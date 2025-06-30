@@ -69,7 +69,10 @@ export class OrdersAppStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(2),
       bundling: {
         minify: true,
-        sourceMap: false
+        sourceMap: false,
+        esbuildArgs: {
+            '--packages': 'bundle',
+        },
       },
       environment: {
         ORDERS_DDB: ordersDdb.tableName,
@@ -93,7 +96,10 @@ export class OrdersAppStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(2),
       bundling: {
         minify: true,
-        sourceMap: false
+        sourceMap: false,
+        esbuildArgs: {
+            '--packages': 'bundle',
+        },
       },
       environment: {
         EVENTS_DDB: props.eventsDdb.tableName,
@@ -125,7 +131,10 @@ export class OrdersAppStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(2),
       bundling: {
         minify: true,
-        sourceMap: false
+        sourceMap: false,
+        esbuildArgs: {
+            '--packages': 'bundle',
+        },
       },
       tracing: lambda.Tracing.ACTIVE,
       insightsVersion: lambda.LambdaInsightsVersion.VERSION_1_0_119_0

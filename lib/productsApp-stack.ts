@@ -14,6 +14,9 @@ export class ProductsAppStack extends cdk.Stack {
     readonly productsAdminHandler: lambdaNodeJS.NodejsFunction
     readonly productsDdb: dynamodb.Table
 
+    public readonly productsFetchHandlerArn: string;
+    public readonly productsAdminHandlerArn: string;
+
     constructor(scope: Construct, id: string, props: ProductsAppStackProps) {
         super(scope, id, props)
 
@@ -47,7 +50,10 @@ export class ProductsAppStack extends cdk.Stack {
             timeout: cdk.Duration.seconds(2),
             bundling: {
                 minify: true,
-                sourceMap: false
+                sourceMap: false,
+                esbuildArgs: {
+                    '--packages': 'bundle',
+                },
             },
             environment: {
                 EVENTS_DDB: props.eventsDdb.tableName
@@ -68,7 +74,10 @@ export class ProductsAppStack extends cdk.Stack {
                 timeout: cdk.Duration.seconds(5),
                 bundling: {
                     minify: true,
-                    sourceMap: false
+                    sourceMap: false,
+                    esbuildArgs: {
+                        '--packages': 'bundle',
+                    },
                 },
                 environment: {
                     PRODCUTS_DDB: this.productsDdb.tableName
@@ -105,5 +114,15 @@ export class ProductsAppStack extends cdk.Stack {
 
 
         productsEventsHandler.grantInvoke(this.productsAdminHandler)
+
+        this.productsFetchHandlerArn = this.productsFetchHandler.functionArn;
+        this.productsAdminHandlerArn = this.productsAdminHandler.functionArn;
+
+        // this.exportValue(this.productsFetchHandler.functionArn, {
+        //     name: 'ProductsFetchHandlerArnExport'
+        // });
+        // this.exportValue(this.productsAdminHandler.functionArn, {
+        //     name: 'ProductsAdminHandlerArnExport'
+        // });
     }
 }
