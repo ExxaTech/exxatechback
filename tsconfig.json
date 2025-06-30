@@ -38,6 +38,15 @@
       ],
       "/opt/nodejs/orderEventsLayer": [
         "lambda/orders/layers/orderEventsLayer/nodejs/orderEvent"
+      ],
+      "/opt/nodejs/orderEventsRepositoryLayer": [
+        "lambda/orders/layers/orderEventsRepositoryLayer/nodejs/orderEventRepository"
+      ],
+      "/opt/nodejs/whatsLayer": [
+        "lambda/whats/layers/whatsLayer/nodejs/whatRepository"
+      ],
+      "/opt/nodejs/authLayer": [
+        "lambda/auth/layers/AuthLayer/nodejs/whatRepository"
       ]
     }
   },
